@@ -1,0 +1,11 @@
+[package]
+name = "mdtolinkedin"
+version = "0.1.0"
+edition = "2021"
+description = "Convert Markdown to LinkedIn-compatible text"
+license = "MIT"
+repository = "https://github.com/juanje/mdtolinkedin"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+pulldown-cmark = "0.10"

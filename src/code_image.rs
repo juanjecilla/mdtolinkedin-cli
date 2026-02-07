@@ -225,7 +225,7 @@ fn expand_tabs(input: &str, tab_width: usize) -> String {
     for ch in input.chars() {
         if ch == '\t' {
             let spaces = tab_width - (col % tab_width);
-            out.extend(std::iter::repeat(' ').take(spaces));
+            out.extend(std::iter::repeat_n(' ', spaces));
             col += spaces;
         } else {
             out.push(ch);

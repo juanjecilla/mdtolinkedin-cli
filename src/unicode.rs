@@ -1,5 +1,5 @@
 /// Convert ASCII letters to Mathematical Bold Unicode.
-/// 
+///
 /// # Example
 /// ```
 /// use mdtolinkedin::unicode::to_bold;
@@ -16,7 +16,7 @@ pub fn to_bold(text: &str) -> String {
 }
 
 /// Convert ASCII letters to Mathematical Italic Unicode.
-/// 
+///
 /// # Example
 /// ```
 /// use mdtolinkedin::unicode::to_italic;
@@ -70,7 +70,10 @@ mod tests {
 
     #[test]
     fn test_italic_lowercase() {
-        assert_eq!(to_italic("hello"), "\u{1D455}\u{1D452}\u{1D459}\u{1D459}\u{1D45C}");
+        assert_eq!(
+            to_italic("hello"),
+            "\u{1D455}\u{1D452}\u{1D459}\u{1D459}\u{1D45C}"
+        );
     }
 
     #[test]

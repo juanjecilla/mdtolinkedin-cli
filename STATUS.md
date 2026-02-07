@@ -44,7 +44,7 @@
 
 ### 3. CI/CD
 - ✅ **CI Workflow** (`.github/workflows/ci.yml`)
-  - Runs on push/PR to main/master
+  - Runs on push/PR to main
   - Tests, formatting check, Clippy
 
 - ✅ **Release Workflow** (`.github/workflows/release.yml`)
@@ -52,7 +52,7 @@
   - Creates GitHub releases on version tags
 
 ### 4. Documentation
-- ✅ **PROJECT_README.md** - Complete user documentation
+- ✅ **README.md** - Complete user documentation
   - Installation instructions (Homebrew, binaries, from source)
   - Usage examples
   - Command-line options
@@ -65,6 +65,7 @@
   - Homebrew formula template
 
 - ✅ **AGENTS.md** - Development guidance for AI agents
+- ✅ **IMPROVEMENTS.md** - Release, CI, and quality backlog
 
 ### 5. Code Quality
 - ✅ All Unicode character mismatches fixed
@@ -91,17 +92,17 @@
 
 3. **Commit and tag release**:
    ```bash
-   git add src/ tests/ .github/ PROJECT_README.md AGENTS.md Cargo.toml Cargo.lock .gitignore RELEASE.md STATUS.md
+   git add src/ tests/ .github/ README.md AGENTS.md Cargo.toml Cargo.lock .gitignore RELEASE.md STATUS.md IMPROVEMENTS.md
    git commit -m "feat: initial release v0.1.0"
    git tag -a v0.1.0 -m "Release v0.1.0"
-   git push origin master
+   git push origin main
    git push origin v0.1.0
    ```
 
 ### After Release
 
 4. **Create Homebrew Formula**:
-   - Create `juanje/homebrew-tap` repository
+   - Create `juanjecilla/tap` repository
    - Add formula with SHA256 hashes from release artifacts
    - See `RELEASE.md` for template
 
@@ -127,7 +128,8 @@ mdtolinkedin-cli/
 │       ├── ci.yml       # CI workflow
 │       └── release.yml  # Release workflow
 ├── docs/                # Development documentation
-├── PROJECT_README.md    # User documentation
+├── README.md          # User documentation
+├── IMPROVEMENTS.md    # Backlog and improvement ideas
 ├── RELEASE.md          # Release guide
 ├── STATUS.md           # This file
 └── Cargo.toml          # Project manifest

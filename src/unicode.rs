@@ -2,6 +2,7 @@
 /// 
 /// # Example
 /// ```
+/// use mdtolinkedin::unicode::to_bold;
 /// assert_eq!(to_bold("Hello"), "𝐇𝐞𝐥𝐥𝐨");
 /// ```
 pub fn to_bold(text: &str) -> String {
@@ -18,6 +19,7 @@ pub fn to_bold(text: &str) -> String {
 /// 
 /// # Example
 /// ```
+/// use mdtolinkedin::unicode::to_italic;
 /// assert_eq!(to_italic("Hello"), "𝐻𝑒𝑙𝑙𝑜");
 /// ```
 pub fn to_italic(text: &str) -> String {

@@ -35,7 +35,7 @@ cargo clippy -- -D warnings || { echo "❌ cargo clippy failed"; exit 1; }
 # Step 3: Stage files for commit
 echo ""
 echo "Step 3: Staging files for commit..."
-git add src/ tests/ .github/ PROJECT_README.md AGENTS.md Cargo.toml Cargo.lock .gitignore RELEASE.md STATUS.md
+git add src/ tests/ .github/ README.md AGENTS.md Cargo.toml Cargo.lock .gitignore RELEASE.md STATUS.md IMPROVEMENTS.md
 
 # Show what will be committed
 echo ""
@@ -75,7 +75,7 @@ fi
 # Step 6: Push instructions
 echo ""
 echo "📤 Next steps:"
-echo "1. Push commits:    git push origin master"
+echo "1. Push commits:    git push origin main"
 echo "2. Push tag:        git push origin v0.1.0"
 echo ""
 echo "After pushing the tag, GitHub Actions will automatically:"

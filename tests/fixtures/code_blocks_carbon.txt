@@ -1,0 +1,5 @@
+Before code.
+
+https://carbon.now.sh/?code=fn%20main%28%29%20%7B%7D%0A&l=rust
+
+After code.

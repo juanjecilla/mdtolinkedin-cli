@@ -65,16 +65,18 @@ Input (file/stdin) → Parser (pulldown-cmark) → Converter (unicode mapping) �
 ### Module Structure
 
 - **`cli.rs`**: Clap-based CLI argument parsing. Defines input/output modes, optional Carbon URL generation, and warning suppression.
+- **`cli.rs`**: Clap-based CLI argument parsing. Defines input/output modes, code block handling, optional Carbon URL generation, bullet customization, and warning suppression.
   
 - **`io.rs`**: Abstracts I/O operations. Handles reading from stdin or file, writing to stdout or file. All file operations use `PathBuf` for cross-platform compatibility.
 
-- **`converter.rs`**: Core conversion engine. Uses `pulldown_cmark` event stream to parse Markdown AST and transform elements to LinkedIn format. Maintains state for nested formatting contexts (e.g., bold within lists).
+- **`converter.rs`**: Core conversion engine. Uses `pulldown_cmark` event stream to parse Markdown AST and transform elements to LinkedIn format. Maintains state for nested formatting contexts (e.g., bold within lists). Can trigger code image rendering when `--code-blocks image` is enabled.
 
 - **`unicode.rs`**: ASCII-to-Unicode character mapping. Implements transformations using Mathematical Alphanumeric Symbols:
   - Bold: `A-Z` → U+1D400–U+1D419, `a-z` → U+1D41A–U+1D433
   - Italic: `A-Z` → U+1D434–U+1D44D, `a-z` → U+1D44E–U+1D467
   - Only letters transform; numbers, punctuation, and emoji preserve unchanged.
 
+- **`lib.rs`**: Library crate exports for reuse in other Rust projects.
 - **`main.rs`**: Entry point. Orchestrates CLI parsing, I/O, conversion, and character limit warning (3000 chars).
 
 ### Key Design Patterns
@@ -92,18 +94,21 @@ Input (file/stdin) → Parser (pulldown-cmark) → Converter (unicode mapping) �
 | `# Header` | Bold text (no # symbol) |
 | `**bold**` | Unicode bold characters |
 | `*italic*` | Unicode italic characters |
+| `***bold italic***` | Unicode bold italic characters |
 | `- item` | `• item` (bullet symbol) |
 | `1. item` | `1. item` (preserved) |
 | `> quote` | Italic text |
 | `[text](url)` | `text (url)` |
 | `` `code` `` | Remove backticks, plain text |
-| ``````` code ``````` | Omit OR generate Carbon.now.sh URL (with `--carbon` flag) |
+| ``````` code ``````` | Omit, keep as text, or generate Carbon URL (with `--code-blocks`) |
 
 ## Testing Strategy
 
 - **Unit tests in `unicode.rs`**: Verify each ASCII character maps to correct Unicode codepoint.
 - **Unit tests in `converter.rs`**: Test each Markdown element conversion independently (headers, bold, italic, lists, links, blockquotes).
 - **Integration tests**: Validate CLI argument parsing, stdin/stdout piping, file I/O, and character limit warnings.
+- **Fixture tests**: Snapshot-style fixtures in `tests/fixtures/` verified by converter unit tests.
+  - Regenerate fixtures with `scripts/update_fixtures.py`.
 
 When adding tests, place unit tests in the same file using `#[cfg(test)]` module. Integration tests go in `tests/` directory.
 
@@ -114,11 +119,14 @@ LinkedIn posts have a 3000 character limit. The CLI:
 2. Prints warning to stderr if >3000
 3. Suppresses warning with `--no-warn` flag
 4. Warnings use stderr to avoid polluting piped output
+5. Custom thresholds use `--max-chars <N>`
 
 ## Dependencies
 
 - **clap v4**: CLI parsing with derive macros. Use `#[command]` and `#[arg]` attributes for configuration.
 - **pulldown-cmark v0.10**: CommonMark-compliant Markdown parser. Event-based streaming API, not AST-based.
+- **syntect v5**: Syntax highlighting for code images.
+- **resvg v0.35**: SVG rendering to PNG for code images.
 
 When adding dependencies, prefer stable crates with active maintenance and minimal transitive dependencies.
 

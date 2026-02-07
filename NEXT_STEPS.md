@@ -48,7 +48,7 @@ cargo clippy -- -D warnings
 
 #### 3. Stage Files
 ```bash
-git add src/ tests/ .github/ PROJECT_README.md AGENTS.md Cargo.toml Cargo.lock .gitignore RELEASE.md STATUS.md
+git add src/ tests/ .github/ README.md AGENTS.md Cargo.toml Cargo.lock .gitignore RELEASE.md STATUS.md IMPROVEMENTS.md
 ```
 
 #### 4. Create Commit
@@ -71,7 +71,7 @@ git tag -a v0.1.0 -m "Release v0.1.0 - Initial release"
 
 #### 6. Push to GitHub
 ```bash
-git push origin master
+git push origin main
 git push origin v0.1.0
 ```
 
@@ -110,9 +110,10 @@ The following files are ready to be committed:
 - `.github/workflows/release.yml`
 
 **Documentation:**
-- `PROJECT_README.md`
+- `README.md`
 - `AGENTS.md`
 - `RELEASE.md`
+- `IMPROVEMENTS.md`
 - `STATUS.md`
 - `NEXT_STEPS.md` (this file)
 
@@ -141,7 +142,7 @@ rustup default stable
 ./prepare-release.sh
 
 # 3. Follow the prompts, then push:
-git push origin master
+git push origin main
 git push origin v0.1.0
 ```
 

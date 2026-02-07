@@ -43,7 +43,7 @@ The following files should be committed:
 - `.github/workflows/release.yml`
 
 **Documentation:**
-- `PROJECT_README.md` (updated with installation instructions)
+- `README.md` (updated with installation instructions)
 - `AGENTS.md` (project guidance)
 
 **Configuration:**
@@ -61,7 +61,7 @@ The following files should be committed:
 
 ```bash
 # Stage all changes
-git add src/ tests/ .github/ PROJECT_README.md AGENTS.md Cargo.toml Cargo.lock .gitignore
+git add src/ tests/ .github/ README.md AGENTS.md Cargo.toml Cargo.lock .gitignore IMPROVEMENTS.md
 
 # Commit changes
 git commit -m "feat: initial release v0.1.0
@@ -78,7 +78,7 @@ git commit -m "feat: initial release v0.1.0
 git tag -a v0.1.0 -m "Release v0.1.0 - Initial release"
 
 # Push commits and tags
-git push origin master
+git push origin main
 git push origin v0.1.0
 ```
 
@@ -94,7 +94,7 @@ Once GitHub Actions builds the release:
    ```
 
 3. **Create Homebrew Formula:**
-   - Create repository: `juanje/homebrew-tap`
+   - Create repository: `juanjecilla/tap`
    - Add file: `Formula/mdtolinkedin.rb`
    - Update SHA256 values
    - Push to repository
@@ -104,22 +104,22 @@ Once GitHub Actions builds the release:
 ```ruby
 class Mdtolinkedin < Formula
   desc "Convert Markdown to LinkedIn-compatible text"
-  homepage "https://github.com/juanje/mdtolinkedin"
+  homepage "https://github.com/juanjecilla/mdtolinkedin-cli"
   version "0.1.0"
 
   on_macos do
     on_arm do
-      url "https://github.com/juanje/mdtolinkedin/releases/download/v0.1.0/mdtolinkedin-macos-aarch64.tar.gz"
+      url "https://github.com/juanjecilla/mdtolinkedin-cli/releases/download/v0.1.0/mdtolinkedin-macos-aarch64.tar.gz"
       sha256 "REPLACE_WITH_SHA256"
     end
     on_intel do
-      url "https://github.com/juanje/mdtolinkedin/releases/download/v0.1.0/mdtolinkedin-macos-x86_64.tar.gz"
+      url "https://github.com/juanjecilla/mdtolinkedin-cli/releases/download/v0.1.0/mdtolinkedin-macos-x86_64.tar.gz"
       sha256 "REPLACE_WITH_SHA256"
     end
   end
 
   on_linux do
-    url "https://github.com/juanje/mdtolinkedin/releases/download/v0.1.0/mdtolinkedin-linux-x86_64.tar.gz"
+    url "https://github.com/juanjecilla/mdtolinkedin-cli/releases/download/v0.1.0/mdtolinkedin-linux-x86_64.tar.gz"
     sha256 "REPLACE_WITH_SHA256"
   end
 

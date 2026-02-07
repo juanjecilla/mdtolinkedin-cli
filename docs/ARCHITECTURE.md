@@ -4,12 +4,13 @@
 
 ```
 src/
+├── lib.rs           # Library crate exports
 ├── main.rs          # Entry point, CLI parsing
 ├── cli.rs           # Clap CLI definition
 ├── io.rs            # Input/output handling
 ├── converter.rs     # Markdown → LinkedIn conversion
 ├── unicode.rs       # ASCII → Unicode math mappings
-└── carbon.rs        # Carbon.now.sh URL generation (optional)
+└── carbon.rs        # Carbon.now.sh URL generation
 ```
 
 ## Data Flow

@@ -1,0 +1,1 @@
+{"text":"𝐛𝐨𝐥𝐝 text","char_count":9,"limit":3000,"limit_exceeded":false}

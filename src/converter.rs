@@ -1,7 +1,7 @@
-use pulldown_cmark::{CodeBlockKind, Event, Parser, Tag, TagEnd};
 use crate::carbon::carbon_url;
 use crate::code_image::{render_code_image, CodeImageOptions};
 use crate::unicode::{to_bold, to_bold_italic, to_italic};
+use pulldown_cmark::{CodeBlockKind, Event, Parser, Tag, TagEnd};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum TextStyle {
@@ -159,7 +159,9 @@ pub fn convert(markdown: &str, options: &ConvertOptions) -> String {
                 in_code_block = true;
                 code_block_content.clear();
                 code_block_language = match kind {
-                    CodeBlockKind::Fenced(info) => info.split_whitespace().next().map(|s| s.to_string()),
+                    CodeBlockKind::Fenced(info) => {
+                        info.split_whitespace().next().map(|s| s.to_string())
+                    }
                     CodeBlockKind::Indented => None,
                 };
             }

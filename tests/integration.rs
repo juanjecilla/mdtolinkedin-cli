@@ -1,5 +1,5 @@
-use std::process::Command;
 use std::io::Write;
+use std::process::Command;
 
 #[test]
 fn test_file_input_stdout() {
@@ -266,11 +266,23 @@ fn test_code_blocks_image_mode_creates_files() {
     let png_exists = std::fs::read_dir(output_dir)
         .unwrap()
         .filter_map(|entry| entry.ok())
-        .any(|entry| entry.path().extension().map(|e| e == "png").unwrap_or(false));
+        .any(|entry| {
+            entry
+                .path()
+                .extension()
+                .map(|e| e == "png")
+                .unwrap_or(false)
+        });
     let svg_exists = std::fs::read_dir(output_dir)
         .unwrap()
         .filter_map(|entry| entry.ok())
-        .any(|entry| entry.path().extension().map(|e| e == "svg").unwrap_or(false));
+        .any(|entry| {
+            entry
+                .path()
+                .extension()
+                .map(|e| e == "svg")
+                .unwrap_or(false)
+        });
 
     assert!(png_exists);
     assert!(svg_exists);

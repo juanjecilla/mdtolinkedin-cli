@@ -57,7 +57,10 @@ pub fn render_code_image(
 
     render_png(&svg, &png_path, options)?;
 
-    Ok(CodeImagePaths { png: png_path, svg: svg_path })
+    Ok(CodeImagePaths {
+        png: png_path,
+        svg: svg_path,
+    })
 }
 
 fn render_svg(
@@ -99,9 +102,7 @@ fn render_svg(
             cols += expanded.chars().count();
             let color = format!(
                 "#{:02X}{:02X}{:02X}",
-                style.foreground.r,
-                style.foreground.g,
-                style.foreground.b
+                style.foreground.r, style.foreground.g, style.foreground.b
             );
             tokens.push((color, expanded));
         }
@@ -157,7 +158,11 @@ fn render_svg(
     Ok(svg)
 }
 
-fn render_png(svg: &str, out_path: &Path, options: &CodeImageOptions) -> Result<(), CodeImageError> {
+fn render_png(
+    svg: &str,
+    out_path: &Path,
+    options: &CodeImageOptions,
+) -> Result<(), CodeImageError> {
     let opt = usvg::Options::default();
 
     let mut fontdb = fontdb::Database::new();

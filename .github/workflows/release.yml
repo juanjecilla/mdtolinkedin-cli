@@ -65,6 +65,11 @@ jobs:
           path: artifacts
           merge-multiple: true
 
+      - name: Generate checksums
+        run: |
+          cd artifacts
+          sha256sum mdtolinkedin-*.tar.gz mdtolinkedin-*.zip > SHA256SUMS.txt
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:

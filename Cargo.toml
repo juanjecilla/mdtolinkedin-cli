@@ -11,3 +11,10 @@ clap = { version = "4", features = ["derive"] }
 pulldown-cmark = "0.10"
 syntect = "5"
 resvg = "0.35"
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "convert_large"
+harness = false

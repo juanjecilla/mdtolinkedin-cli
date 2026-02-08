@@ -196,10 +196,7 @@ fn pick_theme<'a>(ts: &'a ThemeSet, name: &str) -> Result<&'a Theme, CodeImageEr
     if let Some(theme) = ts.themes.get(name) {
         return Ok(theme);
     }
-    ts.themes
-        .values()
-        .next()
-        .ok_or_else(|| CodeImageError("no themes available".to_string()))
+    Err(CodeImageError(format!("theme not found: {}", name)))
 }
 
 /// Sanitize a string for use as a filename stem (e.g. language name).
@@ -248,4 +245,53 @@ fn escape_xml(input: &str) -> String {
         }
     }
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    fn temp_dir(name: &str) -> PathBuf {
+        let dir =
+            std::env::temp_dir().join(format!("mdtolinkedin_test_{}_{}", name, std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    fn base_options(output_dir: PathBuf) -> CodeImageOptions {
+        CodeImageOptions {
+            output_dir,
+            theme: "InspiredGitHub".to_string(),
+            font_path: None,
+            font_size: 16.0,
+            background: "#ffffff".to_string(),
+            padding: 24,
+        }
+    }
+
+    #[test]
+    fn test_invalid_theme_returns_error() {
+        let output_dir = temp_dir("invalid_theme");
+        let mut options = base_options(output_dir.clone());
+        options.theme = "not-a-theme".to_string();
+
+        let err = render_code_image("fn main() {}", Some("rust"), 0, &options).unwrap_err();
+        assert!(err.to_string().contains("theme not found"));
+
+        let _ = std::fs::remove_dir_all(output_dir);
+    }
+
+    #[test]
+    fn test_missing_font_returns_error() {
+        let output_dir = temp_dir("missing_font");
+        let missing_font = output_dir.join("missing-font.ttf");
+        let mut options = base_options(output_dir.clone());
+        options.font_path = Some(missing_font);
+
+        let err = render_code_image("fn main() {}", Some("rust"), 0, &options).unwrap_err();
+        assert!(err.to_string().contains("load font failed"));
+
+        let _ = std::fs::remove_dir_all(output_dir);
+    }
 }

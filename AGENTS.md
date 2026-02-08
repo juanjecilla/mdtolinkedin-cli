@@ -2,6 +2,22 @@
 
 This file provides guidance to WARP (warp.dev) when working with code in this repository.
 
+## Worktree Policy
+
+All tasks must be developed in an independent Git worktree. Do not work directly in the primary checkout at `/Users/juanje/RustProjects/mdtolinkedin-cli`.
+
+Use this pattern for every task:
+
+```bash
+git -C /Users/juanje/RustProjects/mdtolinkedin-cli worktree add -b feature/<task-name> /private/tmp/mdtolinkedin-cli-worktrees/<task-name> origin/main
+```
+
+Keep the primary checkout clean. When a task is complete, remove its worktree:
+
+```bash
+git -C /Users/juanje/RustProjects/mdtolinkedin-cli worktree remove /private/tmp/mdtolinkedin-cli-worktrees/<task-name>
+```
+
 ## Project Overview
 
 **mdtolinkedin** is a Rust CLI tool that converts Markdown to LinkedIn-compatible text using Unicode Mathematical Alphanumeric Symbols. LinkedIn doesn't support Markdown natively, so this tool transforms bold/italic formatting into Unicode equivalents that LinkedIn accepts.

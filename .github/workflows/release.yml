@@ -16,15 +16,23 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
             name: linux-x86_64
+            use_target: false
+            bin_dir: target/release
           - target: x86_64-apple-darwin
             os: macos-latest
             name: macos-x86_64
+            use_target: true
+            bin_dir: target/x86_64-apple-darwin/release
           - target: aarch64-apple-darwin
             os: macos-latest
             name: macos-aarch64
+            use_target: true
+            bin_dir: target/aarch64-apple-darwin/release
           - target: x86_64-pc-windows-msvc
             os: windows-latest
             name: windows-x86_64
+            use_target: true
+            bin_dir: target/x86_64-pc-windows-msvc/release
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -32,23 +40,49 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
 
       - name: Build
-        run: cargo build --release --target ${{ matrix.target }}
+        shell: bash
+        run: |
+          if [ "${{ matrix.use_target }}" = "true" ]; then
+            cargo build --release --target "${{ matrix.target }}"
+          else
+            cargo build --release
+          fi
 
       - name: Package (Unix)
         if: runner.os != 'Windows'
+        shell: bash
         run: |
-          cd target/${{ matrix.target }}/release
-          tar -czvf ../../../mdtolinkedin-${{ matrix.name }}.tar.gz mdtolinkedin
-          cd ../../..
+          cd "${{ matrix.bin_dir }}"
+          tar -czvf "${{ github.workspace }}/mdtolinkedin-${{ matrix.name }}.tar.gz" mdtolinkedin
 
       - name: Package (Windows)
         if: runner.os == 'Windows'
+        shell: bash
         run: |
-          cd target/${{ matrix.target }}/release
-          7z a ../../../mdtolinkedin-${{ matrix.name }}.zip mdtolinkedin.exe
-          cd ../../..
+          cd "${{ matrix.bin_dir }}"
+          7z a "${{ github.workspace }}/mdtolinkedin-${{ matrix.name }}.zip" mdtolinkedin.exe
+
+      - name: Install RPM tooling (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm
+
+      - name: Install packaging tools (Linux)
+        if: runner.os == 'Linux'
+        run: cargo install cargo-deb cargo-rpm
+
+      - name: Package (deb/rpm)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          cargo deb --no-build
+          cargo rpm build
+          cp target/debian/*.deb "${{ github.workspace }}/mdtolinkedin-${{ matrix.name }}.deb"
+          cp target/release/rpmbuild/RPMS/*/*.rpm "${{ github.workspace }}/mdtolinkedin-${{ matrix.name }}.rpm"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -59,6 +93,9 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+    env:
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -68,7 +105,18 @@ jobs:
       - name: Generate checksums
         run: |
           cd artifacts
-          sha256sum mdtolinkedin-*.tar.gz mdtolinkedin-*.zip > SHA256SUMS.txt
+          for f in *; do
+            if [ -f "$f" ]; then
+              sha256sum "$f"
+            fi
+          done > SHA256SUMS.txt
+
+      - name: Sign checksums (GPG)
+        if: env.GPG_PRIVATE_KEY != ''
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          printf "%s" "$GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 \
+            -o artifacts/SHA256SUMS.txt.asc -ab artifacts/SHA256SUMS.txt
 
       - name: Create Release
         uses: softprops/action-gh-release@v1

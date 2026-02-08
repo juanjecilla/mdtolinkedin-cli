@@ -1,0 +1,13 @@
+{
+  "version": "0.1.0",
+  "description": "Convert Markdown to LinkedIn-compatible text",
+  "homepage": "https://github.com/juanjecilla/mdtolinkedin-cli",
+  "license": "MIT",
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/juanjecilla/mdtolinkedin-cli/releases/download/v0.1.0/mdtolinkedin-windows-x86_64.zip",
+      "hash": "REPLACE_WITH_SHA256"
+    }
+  },
+  "bin": "mdtolinkedin.exe"
+}

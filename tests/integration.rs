@@ -237,6 +237,25 @@ fn test_format_json() {
 }
 
 #[test]
+fn test_format_json_plain() {
+    let input = "**bold** text";
+    let temp_path = "/tmp/mdtolinkedin_json_plain.md";
+    std::fs::write(temp_path, input).unwrap();
+
+    let output = Command::new("cargo")
+        .args(["run", "--", temp_path, "--format", "json", "--plain"])
+        .output()
+        .expect("Failed to run");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("\"text\""));
+    assert!(stdout.contains("bold text"));
+    assert!(!stdout.contains("𝐛"));
+
+    std::fs::remove_file(temp_path).ok();
+}
+
+#[test]
 fn test_code_blocks_image_mode_creates_files() {
     let input = "```rust\nfn main() {}\n```";
     let temp_path = "/tmp/mdtolinkedin_code_image.md";

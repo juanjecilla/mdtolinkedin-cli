@@ -302,6 +302,7 @@ fn ensure_blank_line(output: &mut String) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::unicode::{to_bold, to_bold_italic};
 
     fn opts() -> ConvertOptions {
         ConvertOptions::default()
@@ -369,6 +370,13 @@ mod tests {
     fn test_bold_italic() {
         let result = convert("***hi***", &opts());
         assert_eq!(result, "\u{1D489}\u{1D48A}");
+    }
+
+    #[test]
+    fn test_bold_with_italic_nested() {
+        let result = convert("**A *B* C**", &opts());
+        let expected = format!("{}{}{}", to_bold("A "), to_bold_italic("B"), to_bold(" C"));
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -469,6 +477,14 @@ mod tests {
     }
 
     #[test]
+    fn test_fixture_ordered_list_start() {
+        let input = std::fs::read_to_string("tests/fixtures/ordered_list_start.md").unwrap();
+        let expected = std::fs::read_to_string("tests/fixtures/ordered_list_start.txt").unwrap();
+        let result = convert(&input, &opts());
+        assert_eq!(result, expected.trim_end_matches('\n'));
+    }
+
+    #[test]
     fn test_fixture_whitespace_no_trim() {
         let input = std::fs::read_to_string("tests/fixtures/whitespace.md").unwrap();
         let expected = std::fs::read_to_string("tests/fixtures/whitespace_notrim.txt").unwrap();
@@ -492,6 +508,14 @@ mod tests {
     fn test_fixture_images() {
         let input = std::fs::read_to_string("tests/fixtures/images.md").unwrap();
         let expected = std::fs::read_to_string("tests/fixtures/images.txt").unwrap();
+        let result = convert(&input, &opts());
+        assert_eq!(result, expected.trim_end_matches('\n'));
+    }
+
+    #[test]
+    fn test_fixture_common() {
+        let input = std::fs::read_to_string("tests/fixtures/common.md").unwrap();
+        let expected = std::fs::read_to_string("tests/fixtures/common.txt").unwrap();
         let result = convert(&input, &opts());
         assert_eq!(result, expected.trim_end_matches('\n'));
     }

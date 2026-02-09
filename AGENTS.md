@@ -6,6 +6,10 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 **mdtolinkedin** is a Rust CLI tool that converts Markdown to LinkedIn-compatible text using Unicode Mathematical Alphanumeric Symbols. LinkedIn doesn't support Markdown natively, so this tool transforms bold/italic formatting into Unicode equivalents that LinkedIn accepts.
 
+## Workflow Note
+
+When starting any new task, always run `git pull` first to fetch the latest updates before making changes.
+
 ## Common Commands
 
 ### Build and Run

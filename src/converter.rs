@@ -2,6 +2,7 @@ use crate::carbon::carbon_url;
 use crate::code_image::{render_code_image, CodeImageOptions};
 use crate::unicode::{to_bold, to_bold_italic, to_italic};
 use pulldown_cmark::{CodeBlockKind, Event, Parser, Tag, TagEnd};
+use std::fmt::Write;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum TextStyle {
@@ -47,14 +48,15 @@ impl Default for ConvertOptions {
 
 pub fn convert(markdown: &str, options: &ConvertOptions) -> String {
     let parser = Parser::new(markdown);
-    let mut output = String::new();
-    let mut style_stack: Vec<TextStyle> = vec![TextStyle::Normal];
+    let mut output = String::with_capacity(markdown.len());
+    let mut style_stack: Vec<TextStyle> = Vec::with_capacity(8);
+    style_stack.push(TextStyle::Normal);
     let mut pending_link_url: Option<String> = None;
     let mut in_code_block = false;
-    let mut code_block_content = String::new();
+    let mut code_block_content = String::with_capacity(256);
     let mut code_block_language: Option<String> = None;
     let mut code_block_index: usize = 0;
-    let mut list_stack: Vec<ListContext> = Vec::new();
+    let mut list_stack: Vec<ListContext> = Vec::with_capacity(8);
 
     for event in parser {
         match event {
@@ -111,7 +113,7 @@ pub fn convert(markdown: &str, options: &ConvertOptions) -> String {
                 }
                 if let Some(ctx) = list_stack.last_mut() {
                     if ctx.ordered {
-                        output.push_str(&format!("{}. ", ctx.next_index));
+                        let _ = write!(output, "{}. ", ctx.next_index);
                         ctx.next_index += 1;
                     } else {
                         output.push_str(&options.bullet);
@@ -141,7 +143,9 @@ pub fn convert(markdown: &str, options: &ConvertOptions) -> String {
             }
             Event::End(TagEnd::Link) => {
                 if let Some(url) = pending_link_url.take() {
-                    output.push_str(&format!(" ({})", url));
+                    output.push_str(" (");
+                    output.push_str(&url);
+                    output.push(')');
                 }
             }
             // Images → alt (url)
@@ -150,7 +154,9 @@ pub fn convert(markdown: &str, options: &ConvertOptions) -> String {
             }
             Event::End(TagEnd::Image) => {
                 if let Some(url) = pending_link_url.take() {
-                    output.push_str(&format!(" ({})", url));
+                    output.push_str(" (");
+                    output.push_str(&url);
+                    output.push(')');
                 }
             }
 
@@ -187,12 +193,16 @@ pub fn convert(markdown: &str, options: &ConvertOptions) -> String {
                                 code_image_options,
                             ) {
                                 Ok(paths) => {
-                                    output.push_str("Code image (png): ");
-                                    output.push_str(&paths.png.display().to_string());
-                                    output.push('\n');
-                                    output.push_str("Code image (svg): ");
-                                    output.push_str(&paths.svg.display().to_string());
-                                    output.push_str("\n\n");
+                                    let _ = write!(
+                                        output,
+                                        "Code image (png): {}\n",
+                                        paths.png.display()
+                                    );
+                                    let _ = write!(
+                                        output,
+                                        "Code image (svg): {}\n\n",
+                                        paths.svg.display()
+                                    );
                                 }
                                 Err(err) => {
                                     eprintln!("Error rendering code image: {}", err);
@@ -216,12 +226,13 @@ pub fn convert(markdown: &str, options: &ConvertOptions) -> String {
                 if in_code_block {
                     code_block_content.push_str(&text);
                 } else {
-                    let styled = apply_style(
-                        &text,
-                        *style_stack.last().unwrap_or(&TextStyle::Normal),
-                        options.plain,
-                    );
-                    output.push_str(&styled);
+                    let style = *style_stack.last().unwrap_or(&TextStyle::Normal);
+                    if options.plain || style == TextStyle::Normal {
+                        output.push_str(&text);
+                    } else {
+                        let styled = apply_style(&text, style, false);
+                        output.push_str(&styled);
+                    }
                 }
             }
 

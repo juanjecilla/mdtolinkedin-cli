@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="200" viewBox="0 0 720 200">
+  <rect width="100%" height="100%" rx="10" fill="#0b1320" />
+  <text x="24" y="40" font-family="Menlo, Consolas, monospace" font-size="16" fill="#e2e8f0">Heading</text>
+  <text x="24" y="72" font-family="Menlo, Consolas, monospace" font-size="14" fill="#94a3b8">fn main() {</text>
+  <text x="24" y="96" font-family="Menlo, Consolas, monospace" font-size="14" fill="#94a3b8">  println!("hi");</text>
+  <text x="24" y="120" font-family="Menlo, Consolas, monospace" font-size="14" fill="#94a3b8">}</text>
+</svg>

@@ -193,14 +193,14 @@ pub fn convert(markdown: &str, options: &ConvertOptions) -> String {
                                 code_image_options,
                             ) {
                                 Ok(paths) => {
-                                    let _ = write!(
+                                    let _ = writeln!(
                                         output,
-                                        "Code image (png): {}\n",
+                                        "Code image (png): {}",
                                         paths.png.display()
                                     );
-                                    let _ = write!(
+                                    let _ = writeln!(
                                         output,
-                                        "Code image (svg): {}\n\n",
+                                        "Code image (svg): {}\n",
                                         paths.svg.display()
                                     );
                                 }
@@ -308,6 +308,12 @@ mod tests {
         ConvertOptions::default()
     }
 
+    fn read_fixture(path: &str) -> String {
+        std::fs::read_to_string(path)
+            .unwrap()
+            .replace("\r\n", "\n")
+    }
+
     #[test]
     fn test_bold() {
         let result = convert("**hello**", &opts());
@@ -410,48 +416,48 @@ mod tests {
 
     #[test]
     fn test_fixture_whitespace() {
-        let input = std::fs::read_to_string("tests/fixtures/whitespace.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/whitespace.txt").unwrap();
+        let input = read_fixture("tests/fixtures/whitespace.md");
+        let expected = read_fixture("tests/fixtures/whitespace.txt");
         let result = convert(&input, &opts());
         assert_eq!(result, expected.trim_end_matches('\n'));
     }
 
     #[test]
     fn test_fixture_nested() {
-        let input = std::fs::read_to_string("tests/fixtures/nested.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/nested.txt").unwrap();
+        let input = read_fixture("tests/fixtures/nested.md");
+        let expected = read_fixture("tests/fixtures/nested.txt");
         let result = convert(&input, &opts());
         assert_eq!(result, expected.trim_end_matches('\n'));
     }
 
     #[test]
     fn test_fixture_links_and_styles() {
-        let input = std::fs::read_to_string("tests/fixtures/links_and_styles.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/links_and_styles.txt").unwrap();
+        let input = read_fixture("tests/fixtures/links_and_styles.md");
+        let expected = read_fixture("tests/fixtures/links_and_styles.txt");
         let result = convert(&input, &opts());
         assert_eq!(result, expected.trim_end_matches('\n'));
     }
 
     #[test]
     fn test_fixture_mixed_lists() {
-        let input = std::fs::read_to_string("tests/fixtures/mixed_lists.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/mixed_lists.txt").unwrap();
+        let input = read_fixture("tests/fixtures/mixed_lists.md");
+        let expected = read_fixture("tests/fixtures/mixed_lists.txt");
         let result = convert(&input, &opts());
         assert_eq!(result, expected.trim_end_matches('\n'));
     }
 
     #[test]
     fn test_fixture_code_blocks_omit() {
-        let input = std::fs::read_to_string("tests/fixtures/code_blocks.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/code_blocks_omit.txt").unwrap();
+        let input = read_fixture("tests/fixtures/code_blocks.md");
+        let expected = read_fixture("tests/fixtures/code_blocks_omit.txt");
         let result = convert(&input, &opts());
         assert_eq!(result, expected.trim_end_matches('\n'));
     }
 
     #[test]
     fn test_fixture_code_blocks_text() {
-        let input = std::fs::read_to_string("tests/fixtures/code_blocks.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/code_blocks_text.txt").unwrap();
+        let input = read_fixture("tests/fixtures/code_blocks.md");
+        let expected = read_fixture("tests/fixtures/code_blocks_text.txt");
         let mut options = opts();
         options.code_block_mode = CodeBlockMode::Text;
         let result = convert(&input, &options);
@@ -460,8 +466,8 @@ mod tests {
 
     #[test]
     fn test_fixture_code_blocks_carbon() {
-        let input = std::fs::read_to_string("tests/fixtures/code_blocks.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/code_blocks_carbon.txt").unwrap();
+        let input = read_fixture("tests/fixtures/code_blocks.md");
+        let expected = read_fixture("tests/fixtures/code_blocks_carbon.txt");
         let mut options = opts();
         options.code_block_mode = CodeBlockMode::Carbon;
         let result = convert(&input, &options);
@@ -470,24 +476,24 @@ mod tests {
 
     #[test]
     fn test_fixture_nested_lists() {
-        let input = std::fs::read_to_string("tests/fixtures/nested_lists.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/nested_lists.txt").unwrap();
+        let input = read_fixture("tests/fixtures/nested_lists.md");
+        let expected = read_fixture("tests/fixtures/nested_lists.txt");
         let result = convert(&input, &opts());
         assert_eq!(result, expected.trim_end_matches('\n'));
     }
 
     #[test]
     fn test_fixture_ordered_list_start() {
-        let input = std::fs::read_to_string("tests/fixtures/ordered_list_start.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/ordered_list_start.txt").unwrap();
+        let input = read_fixture("tests/fixtures/ordered_list_start.md");
+        let expected = read_fixture("tests/fixtures/ordered_list_start.txt");
         let result = convert(&input, &opts());
         assert_eq!(result, expected.trim_end_matches('\n'));
     }
 
     #[test]
     fn test_fixture_whitespace_no_trim() {
-        let input = std::fs::read_to_string("tests/fixtures/whitespace.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/whitespace_notrim.txt").unwrap();
+        let input = read_fixture("tests/fixtures/whitespace.md");
+        let expected = read_fixture("tests/fixtures/whitespace_notrim.txt");
         let mut options = opts();
         options.trim_output = false;
         let result = convert(&input, &options);
@@ -496,8 +502,8 @@ mod tests {
 
     #[test]
     fn test_fixture_plain_mode() {
-        let input = std::fs::read_to_string("tests/fixtures/plain.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/plain.txt").unwrap();
+        let input = read_fixture("tests/fixtures/plain.md");
+        let expected = read_fixture("tests/fixtures/plain.txt");
         let mut options = opts();
         options.plain = true;
         let result = convert(&input, &options);
@@ -506,16 +512,16 @@ mod tests {
 
     #[test]
     fn test_fixture_images() {
-        let input = std::fs::read_to_string("tests/fixtures/images.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/images.txt").unwrap();
+        let input = read_fixture("tests/fixtures/images.md");
+        let expected = read_fixture("tests/fixtures/images.txt");
         let result = convert(&input, &opts());
         assert_eq!(result, expected.trim_end_matches('\n'));
     }
 
     #[test]
     fn test_fixture_common() {
-        let input = std::fs::read_to_string("tests/fixtures/common.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/common.txt").unwrap();
+        let input = read_fixture("tests/fixtures/common.md");
+        let expected = read_fixture("tests/fixtures/common.txt");
         let result = convert(&input, &opts());
         assert_eq!(result, expected.trim_end_matches('\n'));
     }

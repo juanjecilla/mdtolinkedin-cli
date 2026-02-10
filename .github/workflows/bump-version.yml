@@ -1,0 +1,76 @@
+name: Bump Version on Develop -> Main
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'develop'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Sync main
+        run: |
+          git fetch origin main
+          git pull --rebase origin main
+
+      - name: Bump patch version
+        id: bump
+        shell: bash
+        run: |
+          version=$(python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path("Cargo.toml")
+          lines = path.read_text().splitlines()
+          in_package = False
+          new_version = None
+          for idx, line in enumerate(lines):
+              stripped = line.strip()
+              if stripped.startswith("[") and stripped.endswith("]"):
+                  in_package = stripped == "[package]"
+                  continue
+              if in_package and stripped.startswith("version"):
+                  match = re.match(r'(\s*version\s*=\s*")(\d+)\.(\d+)\.(\d+)(")', line)
+                  if not match:
+                      raise SystemExit("Unsupported version format in Cargo.toml")
+                  major, minor, patch = map(int, match.group(2, 3, 4))
+                  patch += 1
+                  new_version = f"{major}.{minor}.{patch}"
+                  lines[idx] = f"{match.group(1)}{new_version}{match.group(5)}"
+                  break
+
+          if new_version is None:
+              raise SystemExit("No [package] version found in Cargo.toml")
+
+          path.write_text("\n".join(lines) + "\n")
+          print(new_version)
+          PY
+          )
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Update lockfile
+        run: cargo generate-lockfile
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add Cargo.toml Cargo.lock
+          if git diff --cached --quiet; then
+            echo "No version changes to commit."
+            exit 0
+          fi
+          git commit -m "chore: bump version to v${{ steps.bump.outputs.version }}"
+          git push origin HEAD:main

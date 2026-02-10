@@ -6,7 +6,7 @@ on:
 
 jobs:
   update-homebrew:
-    if: env.HOMEBREW_TAP_TOKEN != ''
+    if: secrets.HOMEBREW_TAP_TOKEN != ''
     runs-on: ubuntu-latest
     env:
       HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}

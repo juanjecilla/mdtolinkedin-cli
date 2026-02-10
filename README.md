@@ -34,6 +34,8 @@ Maintainers: configure `HOMEBREW_TAP_TOKEN` for release automation. See `docs/HO
 
 ### GitHub Releases
 
+Auto-release on merge to `main` creates a version tag from `Cargo.toml` and publishes a GitHub Release.
+
 Download pre-built binaries from [GitHub Releases](https://github.com/juanjecilla/mdtolinkedin-cli/releases).
 
 ### Linux Packages (.deb/.rpm)

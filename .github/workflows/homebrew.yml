@@ -7,16 +7,18 @@ on:
 jobs:
   update-homebrew:
     runs-on: ubuntu-latest
+    env:
+      HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
     steps:
       - name: Skip if token missing
-        if: ${{ secrets.HOMEBREW_TAP_TOKEN == '' }}
+        if: ${{ env.HOMEBREW_TAP_TOKEN == '' }}
         run: echo "HOMEBREW_TAP_TOKEN not set; skipping Homebrew update."
 
       - uses: actions/checkout@v4
-        if: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
+        if: ${{ env.HOMEBREW_TAP_TOKEN != '' }}
 
       - name: Download checksums
-        if: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
+        if: ${{ env.HOMEBREW_TAP_TOKEN != '' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -24,7 +26,7 @@ jobs:
           gh release download "$tag" --repo "${{ github.repository }}" --pattern "SHA256SUMS.txt" --dir dist
 
       - name: Checkout Homebrew tap
-        if: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
+        if: ${{ env.HOMEBREW_TAP_TOKEN != '' }}
         uses: actions/checkout@v4
         with:
           repository: juanjecilla/homebrew-tap
@@ -32,7 +34,7 @@ jobs:
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
 
       - name: Update formula
-        if: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
+        if: ${{ env.HOMEBREW_TAP_TOKEN != '' }}
         run: |
           python3 scripts/update_homebrew_formula.py \
             --version "${{ github.event.release.tag_name }}" \
@@ -40,7 +42,7 @@ jobs:
             --tap-dir homebrew-tap
 
       - name: Commit and push
-        if: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
+        if: ${{ env.HOMEBREW_TAP_TOKEN != '' }}
         working-directory: homebrew-tap
         run: |
           if git diff --quiet; then

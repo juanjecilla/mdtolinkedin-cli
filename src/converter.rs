@@ -309,9 +309,7 @@ mod tests {
     }
 
     fn read_fixture(path: &str) -> String {
-        std::fs::read_to_string(path)
-            .unwrap()
-            .replace("\r\n", "\n")
+        std::fs::read_to_string(path).unwrap().replace("\r\n", "\n")
     }
 
     #[test]

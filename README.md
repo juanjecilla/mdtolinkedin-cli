@@ -30,6 +30,8 @@ brew tap juanjecilla/tap
 brew install mdtolinkedin
 ```
 
+Maintainers: configure `HOMEBREW_TAP_TOKEN` for release automation. See `docs/HOMEBREW_TAP_TOKEN.md`.
+
 ### GitHub Releases
 
 Download pre-built binaries from [GitHub Releases](https://github.com/juanjecilla/mdtolinkedin-cli/releases).

@@ -1,0 +1,51 @@
+name: Auto Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      created: ${{ steps.tag.outputs.created }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create tag from Cargo.toml version
+        id: tag
+        shell: bash
+        run: |
+          version=$(python3 - <<'PY'
+          import tomllib
+          from pathlib import Path
+
+          data = tomllib.loads(Path("Cargo.toml").read_text())
+          print(data["package"]["version"])
+          PY
+          )
+          tag="v${version}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if git ls-remote --tags origin "$tag" | grep -q "$tag"; then
+            echo "created=false" >> "$GITHUB_OUTPUT"
+            echo "Tag $tag already exists; skipping release."
+            exit 0
+          fi
+          git tag "$tag"
+          git push origin "$tag"
+          echo "created=true" >> "$GITHUB_OUTPUT"
+
+  release:
+    needs: tag
+    if: needs.tag.outputs.created == 'true'
+    uses: ./.github/workflows/release.yml
+    with:
+      tag: ${{ needs.tag.outputs.tag }}
+    secrets: inherit

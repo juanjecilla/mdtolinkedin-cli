@@ -10,6 +10,8 @@ FIXTURES = [
     ("tests/fixtures/links_and_styles.md", "tests/fixtures/links_and_styles.txt", []),
     ("tests/fixtures/mixed_lists.md", "tests/fixtures/mixed_lists.txt", []),
     ("tests/fixtures/nested_lists.md", "tests/fixtures/nested_lists.txt", []),
+    ("tests/fixtures/ordered_list_start.md", "tests/fixtures/ordered_list_start.txt", []),
+    ("tests/fixtures/common.md", "tests/fixtures/common.txt", []),
     ("tests/fixtures/code_blocks.md", "tests/fixtures/code_blocks_omit.txt", ["--code-blocks", "omit"]),
     ("tests/fixtures/code_blocks.md", "tests/fixtures/code_blocks_text.txt", ["--code-blocks", "text"]),
     ("tests/fixtures/code_blocks.md", "tests/fixtures/code_blocks_carbon.txt", ["--code-blocks", "carbon"]),
@@ -30,7 +32,10 @@ def run_cli(input_path: Path, args: list[str]) -> str:
         stderr=subprocess.DEVNULL,
         text=True,
     )
-    return result.stdout
+    output = result.stdout
+    if output.endswith("\n"):
+        output = output[:-1]
+    return output
 
 
 def main() -> int:

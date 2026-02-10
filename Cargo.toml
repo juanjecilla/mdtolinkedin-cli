@@ -4,10 +4,41 @@ version = "0.1.0"
 edition = "2021"
 description = "Convert Markdown to LinkedIn-compatible text"
 license = "MIT"
+readme = "README.md"
 repository = "https://github.com/juanjecilla/mdtolinkedin-cli"
+homepage = "https://github.com/juanjecilla/mdtolinkedin-cli"
+keywords = ["markdown", "linkedin", "cli"]
+categories = ["command-line-utilities", "text-processing"]
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
 pulldown-cmark = "0.10"
 syntect = "5"
 resvg = "0.35"
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "convert_large"
+harness = false
+
+[package.metadata.rpm]
+package = "mdtolinkedin"
+
+[package.metadata.rpm.cargo]
+buildflags = ["--release"]
+
+[package.metadata.rpm.targets]
+mdtolinkedin = { path = "/usr/bin/mdtolinkedin" }
+
+[package.metadata.deb]
+maintainer = "mdtolinkedin maintainers"
+section = "utils"
+priority = "optional"
+assets = [
+    ["target/release/mdtolinkedin", "usr/bin/", "755"],
+    ["README.md", "usr/share/doc/mdtolinkedin/README.md", "644"],
+    ["CHANGELOG.md", "usr/share/doc/mdtolinkedin/CHANGELOG.md", "644"],
+    ["LICENSE", "usr/share/doc/mdtolinkedin/LICENSE", "644"],
+]

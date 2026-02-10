@@ -2,6 +2,7 @@ use crate::carbon::carbon_url;
 use crate::code_image::{render_code_image, CodeImageOptions};
 use crate::unicode::{to_bold, to_bold_italic, to_italic};
 use pulldown_cmark::{CodeBlockKind, Event, Parser, Tag, TagEnd};
+use std::fmt::Write;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum TextStyle {
@@ -47,14 +48,15 @@ impl Default for ConvertOptions {
 
 pub fn convert(markdown: &str, options: &ConvertOptions) -> String {
     let parser = Parser::new(markdown);
-    let mut output = String::new();
-    let mut style_stack: Vec<TextStyle> = vec![TextStyle::Normal];
+    let mut output = String::with_capacity(markdown.len());
+    let mut style_stack: Vec<TextStyle> = Vec::with_capacity(8);
+    style_stack.push(TextStyle::Normal);
     let mut pending_link_url: Option<String> = None;
     let mut in_code_block = false;
-    let mut code_block_content = String::new();
+    let mut code_block_content = String::with_capacity(256);
     let mut code_block_language: Option<String> = None;
     let mut code_block_index: usize = 0;
-    let mut list_stack: Vec<ListContext> = Vec::new();
+    let mut list_stack: Vec<ListContext> = Vec::with_capacity(8);
 
     for event in parser {
         match event {
@@ -111,7 +113,7 @@ pub fn convert(markdown: &str, options: &ConvertOptions) -> String {
                 }
                 if let Some(ctx) = list_stack.last_mut() {
                     if ctx.ordered {
-                        output.push_str(&format!("{}. ", ctx.next_index));
+                        let _ = write!(output, "{}. ", ctx.next_index);
                         ctx.next_index += 1;
                     } else {
                         output.push_str(&options.bullet);
@@ -141,7 +143,9 @@ pub fn convert(markdown: &str, options: &ConvertOptions) -> String {
             }
             Event::End(TagEnd::Link) => {
                 if let Some(url) = pending_link_url.take() {
-                    output.push_str(&format!(" ({})", url));
+                    output.push_str(" (");
+                    output.push_str(&url);
+                    output.push(')');
                 }
             }
             // Images → alt (url)
@@ -150,7 +154,9 @@ pub fn convert(markdown: &str, options: &ConvertOptions) -> String {
             }
             Event::End(TagEnd::Image) => {
                 if let Some(url) = pending_link_url.take() {
-                    output.push_str(&format!(" ({})", url));
+                    output.push_str(" (");
+                    output.push_str(&url);
+                    output.push(')');
                 }
             }
 
@@ -187,12 +193,16 @@ pub fn convert(markdown: &str, options: &ConvertOptions) -> String {
                                 code_image_options,
                             ) {
                                 Ok(paths) => {
-                                    output.push_str("Code image (png): ");
-                                    output.push_str(&paths.png.display().to_string());
-                                    output.push('\n');
-                                    output.push_str("Code image (svg): ");
-                                    output.push_str(&paths.svg.display().to_string());
-                                    output.push_str("\n\n");
+                                    let _ = writeln!(
+                                        output,
+                                        "Code image (png): {}",
+                                        paths.png.display()
+                                    );
+                                    let _ = writeln!(
+                                        output,
+                                        "Code image (svg): {}\n",
+                                        paths.svg.display()
+                                    );
                                 }
                                 Err(err) => {
                                     eprintln!("Error rendering code image: {}", err);
@@ -216,12 +226,13 @@ pub fn convert(markdown: &str, options: &ConvertOptions) -> String {
                 if in_code_block {
                     code_block_content.push_str(&text);
                 } else {
-                    let styled = apply_style(
-                        &text,
-                        *style_stack.last().unwrap_or(&TextStyle::Normal),
-                        options.plain,
-                    );
-                    output.push_str(&styled);
+                    let style = *style_stack.last().unwrap_or(&TextStyle::Normal);
+                    if options.plain || style == TextStyle::Normal {
+                        output.push_str(&text);
+                    } else {
+                        let styled = apply_style(&text, style, false);
+                        output.push_str(&styled);
+                    }
                 }
             }
 
@@ -291,9 +302,14 @@ fn ensure_blank_line(output: &mut String) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::unicode::{to_bold, to_bold_italic};
 
     fn opts() -> ConvertOptions {
         ConvertOptions::default()
+    }
+
+    fn read_fixture(path: &str) -> String {
+        std::fs::read_to_string(path).unwrap().replace("\r\n", "\n")
     }
 
     #[test]
@@ -361,6 +377,13 @@ mod tests {
     }
 
     #[test]
+    fn test_bold_with_italic_nested() {
+        let result = convert("**A *B* C**", &opts());
+        let expected = format!("{}{}{}", to_bold("A "), to_bold_italic("B"), to_bold(" C"));
+        assert_eq!(result, expected);
+    }
+
+    #[test]
     fn test_code_block_removed() {
         let result = convert("```rust\nfn main() {}\n```", &opts());
         assert!(!result.contains("fn main"));
@@ -391,48 +414,48 @@ mod tests {
 
     #[test]
     fn test_fixture_whitespace() {
-        let input = std::fs::read_to_string("tests/fixtures/whitespace.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/whitespace.txt").unwrap();
+        let input = read_fixture("tests/fixtures/whitespace.md");
+        let expected = read_fixture("tests/fixtures/whitespace.txt");
         let result = convert(&input, &opts());
         assert_eq!(result, expected.trim_end_matches('\n'));
     }
 
     #[test]
     fn test_fixture_nested() {
-        let input = std::fs::read_to_string("tests/fixtures/nested.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/nested.txt").unwrap();
+        let input = read_fixture("tests/fixtures/nested.md");
+        let expected = read_fixture("tests/fixtures/nested.txt");
         let result = convert(&input, &opts());
         assert_eq!(result, expected.trim_end_matches('\n'));
     }
 
     #[test]
     fn test_fixture_links_and_styles() {
-        let input = std::fs::read_to_string("tests/fixtures/links_and_styles.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/links_and_styles.txt").unwrap();
+        let input = read_fixture("tests/fixtures/links_and_styles.md");
+        let expected = read_fixture("tests/fixtures/links_and_styles.txt");
         let result = convert(&input, &opts());
         assert_eq!(result, expected.trim_end_matches('\n'));
     }
 
     #[test]
     fn test_fixture_mixed_lists() {
-        let input = std::fs::read_to_string("tests/fixtures/mixed_lists.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/mixed_lists.txt").unwrap();
+        let input = read_fixture("tests/fixtures/mixed_lists.md");
+        let expected = read_fixture("tests/fixtures/mixed_lists.txt");
         let result = convert(&input, &opts());
         assert_eq!(result, expected.trim_end_matches('\n'));
     }
 
     #[test]
     fn test_fixture_code_blocks_omit() {
-        let input = std::fs::read_to_string("tests/fixtures/code_blocks.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/code_blocks_omit.txt").unwrap();
+        let input = read_fixture("tests/fixtures/code_blocks.md");
+        let expected = read_fixture("tests/fixtures/code_blocks_omit.txt");
         let result = convert(&input, &opts());
         assert_eq!(result, expected.trim_end_matches('\n'));
     }
 
     #[test]
     fn test_fixture_code_blocks_text() {
-        let input = std::fs::read_to_string("tests/fixtures/code_blocks.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/code_blocks_text.txt").unwrap();
+        let input = read_fixture("tests/fixtures/code_blocks.md");
+        let expected = read_fixture("tests/fixtures/code_blocks_text.txt");
         let mut options = opts();
         options.code_block_mode = CodeBlockMode::Text;
         let result = convert(&input, &options);
@@ -441,8 +464,8 @@ mod tests {
 
     #[test]
     fn test_fixture_code_blocks_carbon() {
-        let input = std::fs::read_to_string("tests/fixtures/code_blocks.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/code_blocks_carbon.txt").unwrap();
+        let input = read_fixture("tests/fixtures/code_blocks.md");
+        let expected = read_fixture("tests/fixtures/code_blocks_carbon.txt");
         let mut options = opts();
         options.code_block_mode = CodeBlockMode::Carbon;
         let result = convert(&input, &options);
@@ -451,16 +474,24 @@ mod tests {
 
     #[test]
     fn test_fixture_nested_lists() {
-        let input = std::fs::read_to_string("tests/fixtures/nested_lists.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/nested_lists.txt").unwrap();
+        let input = read_fixture("tests/fixtures/nested_lists.md");
+        let expected = read_fixture("tests/fixtures/nested_lists.txt");
+        let result = convert(&input, &opts());
+        assert_eq!(result, expected.trim_end_matches('\n'));
+    }
+
+    #[test]
+    fn test_fixture_ordered_list_start() {
+        let input = read_fixture("tests/fixtures/ordered_list_start.md");
+        let expected = read_fixture("tests/fixtures/ordered_list_start.txt");
         let result = convert(&input, &opts());
         assert_eq!(result, expected.trim_end_matches('\n'));
     }
 
     #[test]
     fn test_fixture_whitespace_no_trim() {
-        let input = std::fs::read_to_string("tests/fixtures/whitespace.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/whitespace_notrim.txt").unwrap();
+        let input = read_fixture("tests/fixtures/whitespace.md");
+        let expected = read_fixture("tests/fixtures/whitespace_notrim.txt");
         let mut options = opts();
         options.trim_output = false;
         let result = convert(&input, &options);
@@ -469,8 +500,8 @@ mod tests {
 
     #[test]
     fn test_fixture_plain_mode() {
-        let input = std::fs::read_to_string("tests/fixtures/plain.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/plain.txt").unwrap();
+        let input = read_fixture("tests/fixtures/plain.md");
+        let expected = read_fixture("tests/fixtures/plain.txt");
         let mut options = opts();
         options.plain = true;
         let result = convert(&input, &options);
@@ -479,8 +510,16 @@ mod tests {
 
     #[test]
     fn test_fixture_images() {
-        let input = std::fs::read_to_string("tests/fixtures/images.md").unwrap();
-        let expected = std::fs::read_to_string("tests/fixtures/images.txt").unwrap();
+        let input = read_fixture("tests/fixtures/images.md");
+        let expected = read_fixture("tests/fixtures/images.txt");
+        let result = convert(&input, &opts());
+        assert_eq!(result, expected.trim_end_matches('\n'));
+    }
+
+    #[test]
+    fn test_fixture_common() {
+        let input = read_fixture("tests/fixtures/common.md");
+        let expected = read_fixture("tests/fixtures/common.txt");
         let result = convert(&input, &opts());
         assert_eq!(result, expected.trim_end_matches('\n'));
     }

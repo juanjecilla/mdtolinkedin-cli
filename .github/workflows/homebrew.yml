@@ -1,0 +1,56 @@
+name: Homebrew Tap Update
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-homebrew:
+    runs-on: ubuntu-latest
+    env:
+      HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+    steps:
+      - name: Skip if token missing
+        if: ${{ env.HOMEBREW_TAP_TOKEN == '' }}
+        run: echo "HOMEBREW_TAP_TOKEN not set; skipping Homebrew update."
+
+      - uses: actions/checkout@v4
+        if: ${{ env.HOMEBREW_TAP_TOKEN != '' }}
+
+      - name: Download checksums
+        if: ${{ env.HOMEBREW_TAP_TOKEN != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${{ github.event.release.tag_name }}"
+          gh release download "$tag" --repo "${{ github.repository }}" --pattern "SHA256SUMS.txt" --dir dist
+
+      - name: Checkout Homebrew tap
+        if: ${{ env.HOMEBREW_TAP_TOKEN != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: juanjecilla/homebrew-tap
+          path: homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+
+      - name: Update formula
+        if: ${{ env.HOMEBREW_TAP_TOKEN != '' }}
+        run: |
+          python3 scripts/update_homebrew_formula.py \
+            --version "${{ github.event.release.tag_name }}" \
+            --checksums dist/SHA256SUMS.txt \
+            --tap-dir homebrew-tap
+
+      - name: Commit and push
+        if: ${{ env.HOMEBREW_TAP_TOKEN != '' }}
+        working-directory: homebrew-tap
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add Formula/mdtolinkedin.rb
+          git commit -m "Update mdtolinkedin to ${{ github.event.release.tag_name }}"
+          git push

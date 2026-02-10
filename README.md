@@ -17,6 +17,12 @@ of your content clean and readable.
 
 ## Installation
 
+### crates.io
+
+```bash
+cargo install mdtolinkedin
+```
+
 ### Homebrew (macOS/Linux)
 
 ```bash
@@ -24,9 +30,34 @@ brew tap juanjecilla/tap
 brew install mdtolinkedin
 ```
 
+Maintainers: configure `HOMEBREW_TAP_TOKEN` for release automation. See `docs/HOMEBREW_TAP_TOKEN.md`.
+
 ### GitHub Releases
 
+Auto-release on merge to `main` creates a version tag from `Cargo.toml` and publishes a GitHub Release.
+
 Download pre-built binaries from [GitHub Releases](https://github.com/juanjecilla/mdtolinkedin-cli/releases).
+
+### Linux Packages (.deb/.rpm)
+
+Linux packages are attached to each GitHub Release. Install with your distro tooling:
+
+```bash
+# Debian/Ubuntu
+sudo dpkg -i mdtolinkedin-linux-x86_64.deb
+
+# Fedora/RHEL
+sudo rpm -i mdtolinkedin-linux-x86_64.rpm
+```
+
+### Windows (Scoop)
+
+The Scoop manifest is maintained in `packaging/scoop`. Publish it to your
+Scoop bucket to enable installs:
+
+```powershell
+scoop install mdtolinkedin
+```
 
 ### Build from Source
 
